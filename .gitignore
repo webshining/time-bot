@@ -1,0 +1,8 @@
+.venv
+.idea
+**/__pycache__
+**/*.session-journal
+**/time.png
+**/*.session
+**/.env
+poetry.lock
