@@ -1,0 +1,5 @@
+.venv
+**/__pycache__
+**/*.ren
+Dockerfile
+docker-compose.yml
