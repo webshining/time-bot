@@ -16,11 +16,11 @@ def img_generate():
     time_to_wait = (time_now + timedelta(minutes=1) - datetime.now(timezone)).total_seconds()
 
     # Open image
-    if time_now.hour <= 9:
+    if 4 < time_now.hour <= 9:
         name = 'morning'
-    elif time_now.hour <= 17:
+    elif 9 < time_now.hour <= 17:
         name = 'day'
-    elif time_now.hour <= 20:
+    elif 17 < time_now.hour <= 20:
         name = 'evening'
     elif time_now.hour >= 21 or time_now.hour <= 4:
         name = 'night'
