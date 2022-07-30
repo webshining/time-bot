@@ -17,7 +17,7 @@ def img_generate():
 
     # Open image
     if 4 < time_now.hour <= 9:
-        name = 'morning'
+        name = 'evening'
     elif 9 < time_now.hour <= 17:
         name = 'day'
     elif 17 < time_now.hour <= 20:
