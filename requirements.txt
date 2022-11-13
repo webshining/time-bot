@@ -1,0 +1,4 @@
+pillow
+pyrogram
+pytz
+tgcrypto
