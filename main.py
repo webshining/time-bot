@@ -1,9 +1,11 @@
 import asyncio
-from src.generate_img import generate_img
+from decouple import config
 from pyrogram import Client
 
+from src.generate_img import generate_img
 
-app = Client('timebot', 5041292, 'e145bc85c7335c989a7b3b35aed5ae83')
+
+app = Client('timebot', config('API_ID', cast=int), config('API_HASH', cast=str))
 
 async def main():
     while True:
