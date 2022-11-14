@@ -4,8 +4,8 @@ from PIL import ImageDraw, ImageFont, Image
 from .helper import DIR, get_current_time
 
 
-W, H = (2000, 2000)
-FONT_SIZE = 500
+W, H = (1000, 1000)
+FONT_SIZE = 250
 
 def generate_img():
     # get current time for text
