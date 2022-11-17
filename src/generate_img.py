@@ -1,17 +1,12 @@
-from datetime import timedelta
 from PIL import ImageDraw, ImageFont, Image
 
-from .helper import DIR, get_current_time
+from .helper import DIR
 
 
 W, H = (1000, 1000)
 FONT_SIZE = 250
 
-def generate_img():
-    # get current time for text
-    _time = get_current_time()
-    text = f'{_time.strftime("%H")}:{_time.strftime("%M")}'
-    
+def generate_img(text: str):
     # open image, convert to RGB and crop to W, H size
     img = Image.open(f'{DIR}/images/img.jpg').convert('RGB')
     w, h = img.size
@@ -31,5 +26,5 @@ def generate_img():
     img.save(path)
     
     # return path to img and sleep time
-    return path, ((_time.replace(second=0, microsecond=0) + timedelta(minutes=1)) - _time).total_seconds()
+    return path
     
