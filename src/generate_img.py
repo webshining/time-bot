@@ -4,7 +4,7 @@ from decouple import config, Csv
 from .helper import DIR
 
 
-W, H = config('SIZE', cast=Csv(int), default=(1000, 1000))
+W, H = config('SIZE', cast=Csv(int), default=[1000, 1000])
 FONT_SIZE = config('FONT_SIZE', cast=int, default=250)
 
 def generate_img(text: str):
