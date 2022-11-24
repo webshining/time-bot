@@ -15,9 +15,9 @@ async def main():
             text = get_current_time().strftime("%H:%M")
             path = generate_img(text)
             photos = [p async for p in app.get_chat_photos((await app.get_me()).id)]
+            await app.set_profile_photo(photo=path)
             if photos:
                 await app.delete_profile_photos(photos[0].file_id)
-            await app.set_profile_photo(photo=path)
             await asyncio.sleep(time_to_next(get_current_time()).total_seconds())
 
 
