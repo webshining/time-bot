@@ -15,12 +15,16 @@ def generate_img(text: str):
     img = img.crop((left, top, left+W, top+H))
     
     # add font to text and get it size
-    font = ImageFont.truetype(f'{DIR}/fonts/RubikBurned-Regular.ttf', FONT_SIZE)
-    w, h = font.getsize(text)
+    font_rubik = ImageFont.truetype(f'{DIR}/fonts/RubikBurned-Regular.ttf', FONT_SIZE)
+    w1, h1 = font_rubik.getsize(text)
+    font_covered = ImageFont.truetype(f'{DIR}/fonts/CoveredByYourGrace-Regular.ttf', 50)
+    w2, h2 = font_covered.getsize("How good when not negative good")
+    
     
     # draw text
     draw = ImageDraw.Draw(img)
-    draw.text(((W-w)/2, (H-h)/2), text, font=font, fill="#ffffff")
+    draw.text(((W-w1)/2, (H-h1)/2), text, font=font_rubik, fill="#ffffff")
+    draw.text(((W-w2-20), (H-h2-10)), text="How good when not negative good", font=font_covered, fill="#ffffff")
     
     # save image
     path = f'{DIR}/images/profile.jpg'
