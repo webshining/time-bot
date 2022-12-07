@@ -13,9 +13,12 @@ async def main():
     async with app:
         while True:
             text = get_current_time().strftime("%H:%M")
-            path = generate_img(text, 'img.gif', 'RubikBurned-Regular.ttf', 100, (500, 500), 'profile.gif')
+            path = generate_img(text=text, image='inkpendude-portal-storm.gif', font='RubikBurned-Regular.ttf', font_size=225, img_size=(1250, 1250), save_name='profile')
             photos = [p async for p in app.get_chat_photos((await app.get_me()).id)]
-            await app.set_profile_photo(photo=path)
+            if path.split('.')[-1] not in ('gif', 'mp4'):
+                await app.set_profile_photo(photo=path)
+            else: 
+                await app.set_profile_photo(video=path)
             if photos:
                 await app.delete_profile_photos(photos[0].file_id)
             await asyncio.sleep(time_to_next(get_current_time()).total_seconds())
