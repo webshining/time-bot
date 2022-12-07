@@ -29,7 +29,11 @@ def generate_img(text: str, image: str, save_name: str, font: str, font_size: in
             d = ImageDraw.Draw(frame)
             d.text(((W-w)/2, (H-h)/2), text, font=ft, fill=fill)
             del d
+            
+            b = io.BytesIO()
+            frame.save(b, format="GIF")
+            frame = Image.open(b)
             frames.append(frame)
-        frames[0].save(f'{DIR}/images/{save_name}.mp4', format="GIF", save_all=True, append_images=frames[1:])
-        VideoFileClip(f'{DIR}/images/{save_name}.mp4').write_videofile(f'{DIR}/images/{save_name}.mp4')
+        frames[0].save(f'{DIR}/images/{save_name}.gif', save_all=True, append_images=frames[1:])
+        VideoFileClip(f'{DIR}/images/{save_name}.gif').write_videofile(f'{DIR}/images/{save_name}.mp4')
         return f'{DIR}/images/{save_name}.mp4'
