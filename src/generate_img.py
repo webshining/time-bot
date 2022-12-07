@@ -1,42 +1,35 @@
 import io
+from moviepy.editor import VideoFileClip
 from PIL import ImageDraw, ImageFont, Image, ImageSequence
 
 from .helper import DIR
 
 
-def generate_img(text: str, image: str, font: str, font_size: int, img_size: tuple[int], save: str):
+def generate_img(text: str, image: str, save_name: str, font: str, font_size: int = 100, img_size: tuple[int] = (500, 500), fill: str = '#ffffff'):
     W, H = img_size
-    gif = image.split('.')[-1] == 'gif'
-    
-    # open image
+    img_format = image.split('.')[-1]
     img = Image.open(f'{DIR}/images/{image}')
-    if not gif:
+    ft = ImageFont.truetype(f'{DIR}/fonts/{font}', font_size)
+    w, h = ft.getsize(text)
+    if img_format in ('jpg' or 'png'):
         img.convert('RGB')
-        left, top = ((img.size[0] - W) / 2, (img.size[1] - H) / 2)
-        img = img.crop((left, top, left+W, top+H))
-    
-    # add font to text and get it size
-    font = ImageFont.truetype(f'{DIR}/fonts/{font}', font_size)
-    w, h = font.getsize(text)
-    
-    # draw text
-    if not gif:
-        draw = ImageDraw.Draw(img)
-        draw.text(((W-w)/2, (H-h)/2), text, font=font, fill="#ffffff")
-    else:
+        left = (img.size[0]-W)/2
+        top = (img.size[1]-H)/2
+        img.crop((left, top, left+W, top+H))
+        d.text(((W-w)/2, (H-h)/2), text, font=ft, fill=fill)
+        img.save(f'{DIR}/images/{save_name}.jpg')
+        return f'{DIR}/images/{save_name}.jpg'
+    elif img_format == 'gif':
         frames = []
         for frame in ImageSequence.Iterator(img):
-            draw = ImageDraw.Draw(frame)
-            draw.text(((W-w)/2, (H-h)/2), text, font=font, fill="#ffffff")
-            del draw
-            b = io.BytesIO()
-            frame.save(b, format="GIF")
-            frame = Image.open(b)
+            frame = frame.copy().convert('RGB')
+            left = (img.size[0]-W)/2
+            top = (img.size[1]-H)/2
+            frame = frame.crop((left, top, left+W, top+H))
+            d = ImageDraw.Draw(frame)
+            d.text(((W-w)/2, (H-h)/2), text, font=ft, fill=fill)
+            del d
             frames.append(frame)
-    
-    # save image
-    path = f'{DIR}/images/{save}'
-    img.save(path) if not gif else frames[0].save(path, save_all=True, append_images=frames[1:])
-    
-    # return path to img
-    return path
+        frames[0].save(f'{DIR}/images/{save_name}.mp4', format="GIF", save_all=True, append_images=frames[1:])
+        VideoFileClip(f'{DIR}/images/{save_name}.mp4').write_videofile(f'{DIR}/images/{save_name}.mp4')
+        return f'{DIR}/images/{save_name}.mp4'
