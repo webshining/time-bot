@@ -1,5 +1,5 @@
 import io
-from moviepy.editor import VideoFileClip
+import os
 from PIL import ImageDraw, ImageFont, Image, ImageSequence
 
 from .helper import DIR
@@ -11,21 +11,21 @@ def generate_img(text: str, image: str, save_name: str, font: str, font_size: in
     img = Image.open(f'{DIR}/images/{image}')
     ft = ImageFont.truetype(f'{DIR}/fonts/{font}', font_size)
     w, h = ft.getsize(text)
+    path = f'{DIR}/images/{save_name}'
     if img_format in ('jpg' or 'png'):
         img.convert('RGB')
         left = (img.size[0]-W)/2
         top = (img.size[1]-H)/2
         img.crop((left, top, left+W, top+H))
         d.text(((W-w)/2, (H-h)/2), text, font=ft, fill=fill)
-        img.save(f'{DIR}/images/{save_name}.jpg')
-        return f'{DIR}/images/{save_name}.jpg'
+        img.save(f'{path}.jpg')
+        return f'{path}.jpg'
     elif img_format == 'gif':
         frames = []
         for frame in ImageSequence.Iterator(img):
-            frame = frame.copy().convert('RGB')
             left = (img.size[0]-W)/2
             top = (img.size[1]-H)/2
-            frame = frame.crop((left, top, left+W, top+H))
+            frame = frame.convert('RGB').crop((left, top, left+W, top+H))
             d = ImageDraw.Draw(frame)
             d.text(((W-w)/2, (H-h)/2), text, font=ft, fill=fill)
             del d
@@ -34,6 +34,6 @@ def generate_img(text: str, image: str, save_name: str, font: str, font_size: in
             frame.save(b, format="GIF")
             frame = Image.open(b)
             frames.append(frame)
-        frames[0].save(f'{DIR}/images/{save_name}.gif', save_all=True, append_images=frames[1:])
-        VideoFileClip(f'{DIR}/images/{save_name}.gif').write_videofile(f'{DIR}/images/{save_name}.mp4')
-        return f'{DIR}/images/{save_name}.mp4'
+        frames[0].save(f'{path}.gif', save_all=True, append_images=frames[1:])
+        os.system(f'ffmpeg -i {path}.gif -movflags faststart -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" {path}.mp4 -y')
+        return f'{path}.mp4'
