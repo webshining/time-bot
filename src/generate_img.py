@@ -31,9 +31,9 @@ def generate_img(text: str, image: str, save_name: str, font: str, font_size: in
             del d
             
             b = io.BytesIO()
-            frame.save(b, format="GIF")
+            frame.save(b, format='GIF')
             frame = Image.open(b)
             frames.append(frame)
-        frames[0].save(f'{path}.gif', save_all=True, append_images=frames[1:])
-        os.system(f'ffmpeg -i {path}.gif -movflags faststart -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" {path}.mp4 -y')
+        frames[0].save(f'{path}.gif', format='GIF', save_all=True, append_images=frames[1:], loop=0, duration=50, optimize=True, quality=95)
+        os.system(f'ffmpeg -i {path}.gif {path}.mp4 -y')
         return f'{path}.mp4'
