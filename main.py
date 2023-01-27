@@ -1,10 +1,9 @@
 import asyncio
+
 from decouple import config
 from pyrogram import Client
 
-from src.generate_img import generate_img
-from src.helper import get_current_time, time_to_next
-
+from src.generate_img import Generate
 
 app = Client('timebot', config('API_ID', cast=int), config('API_HASH', cast=str))
 
@@ -12,17 +11,15 @@ app = Client('timebot', config('API_ID', cast=int), config('API_HASH', cast=str)
 async def main():
     async with app:
         while True:
-            text = get_current_time().strftime("%H:%M")
-            path = generate_img(text=text, image='img.gif', font='RubikBurned-Regular.ttf', font_size=185, img_size=(750, 750), save_name='profile')
-            photos = [p async for p in app.get_chat_photos((await app.get_me()).id)]
-            if path.split('.')[-1] not in ('gif', 'mp4'):
-                await app.set_profile_photo(photo=path)
-            else: 
-                await app.set_profile_photo(video=path)
+            generate = Generate('img.jpg', 'CabinSketch-Bold.ttf', 145)
+            photos = [i.file_id async for i in app.get_chat_photos((await app.get_me()).id)]
+            if generate.imgtype == 'gif':
+                await app.set_profile_photo(video=generate.generate_gif())
+            else:
+                await app.set_profile_photo(photo=generate.generate_jpg())
             if photos:
-                await app.delete_profile_photos(photos[0].file_id)
-            await asyncio.sleep(time_to_next(get_current_time()).total_seconds())
-
+                await app.delete_profile_photos(photos[0])
+            await asyncio.sleep(generate.time_to_wait)
 
 if __name__ == '__main__':
     app.run(main())

@@ -24,9 +24,6 @@ $ pip install -r requirements.txt
 
 `API_HASH` - your telegram app api_hash
 
-`SIZE` - final size of output avatar in width,height format, by default 1000,1000
-
-`FONT_SIZE` - just the font size
 ## Run project locally
 ```bash
 $ python main.py

@@ -1,39 +1,57 @@
 import io
 import os
-from PIL import ImageDraw, ImageFont, Image, ImageSequence
+from datetime import datetime, timedelta
+
+import pytz
+from PIL import Image, ImageDraw, ImageFont, ImageSequence
 
 from .helper import DIR
 
 
-def generate_img(text: str, image: str, save_name: str, font: str, font_size: int = 100, img_size: tuple[int] = (500, 500), fill: str = '#ffffff'):
-    W, H = img_size
-    img_format = image.split('.')[-1]
-    img = Image.open(f'{DIR}/images/{image}')
-    ft = ImageFont.truetype(f'{DIR}/fonts/{font}', font_size)
-    w, h = ft.getsize(text)
-    path = f'{DIR}/images/{save_name}'
-    if img_format in ('jpg' or 'png'):
-        img.convert('RGB')
-        left = (img.size[0]-W)/2
-        top = (img.size[1]-H)/2
-        img.crop((left, top, left+W, top+H))
-        d.text(((W-w)/2, (H-h)/2), text, font=ft, fill=fill)
-        img.save(f'{path}.jpg')
-        return f'{path}.jpg'
-    elif img_format == 'gif':
+class Generate():
+    def __init__(self, img: str, font: str, fontsize: int = 100, imgsize: int or tuple[int, int] = None, fill: str = '#ffffff'):
+        self.img = Image.open(f"{DIR}/images/{img}")
+        self.imgtype = img.split('.')[-1]
+        self.font = ImageFont.truetype(f'{DIR}/fonts/{font}', size=fontsize)
+        self.fill = fill
+        self.path = f'{DIR}/images/out'
+        self.W, self.H = (imgsize[0], imgsize[1]) if isinstance(imgsize, tuple) else (imgsize, imgsize) if imgsize else (min(self.img.size), min(self.img.size))
+    
+    def get_current_time(self):
+        return datetime.now(pytz.timezone('Europe/Kyiv'))
+    
+    @property
+    def time_to_wait(self):
+        return (self.get_current_time().replace(second=0, microsecond=0)+timedelta(minutes=1)-self.get_current_time()).total_seconds()
+    
+    def generate_jpg(self):
+        img = self.crop_img(self.img)
+        text = self.get_current_time().strftime('%H:%M')
+        draw = ImageDraw.Draw(img)
+        w, h = self.font.getsize(text)
+        draw.text(((self.W-w)/2, (self.H-h)/2), text, self.fill, self.font)
+        b = io.BytesIO()
+        img.save(b, format='JPEG')
+        return b
+    
+    def generate_gif(self):
         frames = []
-        for frame in ImageSequence.Iterator(img):
-            left = (img.size[0]-W)/2
-            top = (img.size[1]-H)/2
-            frame = frame.convert('RGB').crop((left, top, left+W, top+H))
+        text = self.get_current_time().strftime('%H:%M')
+        for frame in ImageSequence.Iterator(self.img):
+            frame = self.crop_img(frame)
             d = ImageDraw.Draw(frame)
-            d.text(((W-w)/2, (H-h)/2), text, font=ft, fill=fill)
+            w, h = self.font.getsize(text)
+            d.text(((self.W-w)/2, (self.H-h)/2), text, self.fill, self.font)
             del d
             
-            b = io.BytesIO()
-            frame.save(b, format='GIF')
-            frame = Image.open(b)
             frames.append(frame)
-        frames[0].save(f'{path}.gif', format='GIF', save_all=True, append_images=frames[1:], loop=0, duration=50, optimize=True, quality=95)
-        os.system(f'ffmpeg -i {path}.gif {path}.mp4 -y')
-        return f'{path}.mp4'
+        frames[0].save(f'{self.path}.gif', format='GIF', save_all=True, append_images=frames[1:], loops=0)
+        os.system(f'ffmpeg -i {self.path}.gif {self.path}.mp4 -y')
+        return f'{self.path}.mp4'
+
+    def crop_img(self, img: Image.Image):
+        w, h = img.size
+        left = (w - self.W)/2
+        top = (h - self.H)/2
+        return img.convert('RGB').crop((left, top, left+self.W, top+self.H))
+        

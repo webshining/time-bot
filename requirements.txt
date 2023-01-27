@@ -3,4 +3,3 @@ pyrogram
 pytz
 tgcrypto
 python-decouple
-moviepy
