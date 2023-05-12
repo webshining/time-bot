@@ -1,8 +1,8 @@
-FROM python
+FROM python:alpine
 
 WORKDIR /app
 
-RUN apt-get -y update && apt-get -y upgrade && apt-get install -y ffmpeg
+RUN apk add --no-cache ffmpeg
 
 COPY requirements.txt .
 

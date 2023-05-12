@@ -5,13 +5,13 @@ from pyrogram import Client
 
 from src.generate_img import Generate
 
-app = Client('timebot', config('API_ID', cast=int), config('API_HASH', cast=str))
+app = Client('data/timebot', config('API_ID', cast=int), config('API_HASH', cast=str))
 
 
 async def main():
     async with app:
         while True:
-            generate = Generate('img.jpg', 'CabinSketch-Bold.ttf', 145)
+            generate = Generate('warmth, frogapples.gif', 'PressStart2P-Regular.ttf', 95)
             photos = [i.file_id async for i in app.get_chat_photos((await app.get_me()).id)]
             if generate.imgtype == 'gif':
                 await app.set_profile_photo(video=generate.generate_gif())

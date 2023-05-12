@@ -46,7 +46,7 @@ class Generate():
             
             frames.append(frame)
         frames[0].save(f'{self.path}.gif', format='GIF', save_all=True, append_images=frames[1:], loops=0)
-        os.system(f'ffmpeg -i {self.path}.gif {self.path}.mp4 -y')
+        os.system(f'ffmpeg -i {self.path}.gif {self.path}.mp4 -loglevel error -y')
         return f'{self.path}.mp4'
 
     def crop_img(self, img: Image.Image):

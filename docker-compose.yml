@@ -4,3 +4,9 @@ services:
   app:
     build: .
     restart: always
+    volumes:
+      - telegram-session:/app/data
+
+volumes:
+  telegram-session:
+    external: true
