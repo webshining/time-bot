@@ -1,18 +1,17 @@
 import asyncio
 
-from decouple import config
 from pyrogram import Client
 
-from src.generate_img import Generate
+from data.config import API_HASH, API_ID
+from generate_img import Generate
 
-app = Client('data/timebot', config('API_ID', cast=int), config('API_HASH', cast=str))
-
+app = Client('data/timebot', api_id=API_ID, api_hash=API_HASH)
 
 async def main():
     async with app:
         while True:
-            generate = Generate('warmth, frogapples.gif', 'PressStart2P-Regular.ttf', 95)
-            photos = [i.file_id async for i in app.get_chat_photos((await app.get_me()).id)]
+            generate = Generate(img='img.png', font='font.ttf')
+            photos = [i.file_id for i in await app.get_profile_photos("me") if hasattr(i, 'file_id')]
             if generate.imgtype == 'gif':
                 await app.set_profile_photo(video=generate.generate_gif())
             else:
