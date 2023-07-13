@@ -2,33 +2,45 @@ import io
 import os
 from datetime import datetime, timedelta
 
-from PIL import Image, ImageDraw, ImageFont, ImageSequence
+import pytz
+from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageSequence
 
-from data.config import DIR, TIMEZONE
+from data.config import DIR
+    
 
-
-class Generate():
-    def __init__(self, img: str, font: str, fontsize: int = None, imgsize: int or tuple[int, int] = None, fill: str = '#ffffff', text: str = None):
-        self.imgtype = img.split('.')[-1]
+class Generate:
+    def __init__(self, img: str or list[str], font: str, imgsize: str or list[str] = None, fontsize: int = None, fill: str = '#ffffff', brightness: float = 1.0, text: str = None, timezone: str = None):
+        self.isgif = img.split('.')[-1] == 'gif'
         self.img = Image.open(f"{DIR}/images/{img}")
         self.W, self.H = (imgsize[0], imgsize[1]) if isinstance(imgsize, tuple) else (imgsize, imgsize) if imgsize else (min(self.img.size), min(self.img.size))
-        if not fontsize:
-            fontsize = int(self.W/3-12)
-        self.font = ImageFont.truetype(f'{DIR}/fonts/{font}', size=fontsize)
+        self.fontsize = fontsize if fontsize else int(self.W/3-12)
+        self.font = ImageFont.truetype(f'{DIR}/fonts/{font}', size=self.fontsize)
         self.fill = fill
-        self.text = text if text else self.current_time.strftime('%H:%M')
+        self.brightness = brightness
         self.path = f'{DIR}/images/out'
-    
-    @property
+        self.timezone = pytz.timezone(timezone if timezone else 'Europe/Kyiv')
+        self.text = text if text else self.current_time().strftime(f'%H:%M')
+        
     def current_time(self) -> datetime:
-        return datetime.now(TIMEZONE)
+        return datetime.now(self.timezone)
     
-    @property
     def time_to_wait(self) -> timedelta.total_seconds:
-        return (self.current_time.replace(second=0, microsecond=0)+timedelta(minutes=1)-self.current_time).total_seconds()
+        return (self.current_time().replace(second=0, microsecond=0)+timedelta(minutes=1)-self.current_time()).total_seconds()
+    
+    def crop_img(self, img: Image.Image = None):
+        img = img if img else self.img
+        w, h = img.size
+        left = (w - self.W)/2
+        top = (h - self.H)/2
+        return img.convert('RGB').crop((left, top, left+self.W, top+self.H))
+    
+    def darken_img(self, img: Image.Image = None, brightness: float = None):
+        img = img if img else self.img
+        brightness = brightness if brightness else self.brightness
+        return ImageEnhance.Brightness(img).enhance(self.brightness)
     
     def generate_jpg(self):
-        img = self.crop_img(self.img)
+        img = self.darken_img(self.crop_img(self.img))
         draw = ImageDraw.Draw(img)
         _, _, w, h = draw.textbbox((0, 0), self.text, font=self.font)
         draw.text(((self.W-w)/2, (self.H-h)/2), self.text, self.fill, self.font)
@@ -39,7 +51,7 @@ class Generate():
     def generate_gif(self):
         frames = []
         for frame in ImageSequence.Iterator(self.img):
-            frame = self.crop_img(frame)
+            frame = self.darken_img(self.crop_img(frame))
             draw = ImageDraw.Draw(frame)
             _, _, w, h = draw.textbbox((0, 0), self.text, font=self.font)
             draw.text(((self.W-w)/2, (self.H-h)/2), self.text, self.fill, self.font)
@@ -49,10 +61,4 @@ class Generate():
         frames[0].save(f'{self.path}.gif', format='GIF', save_all=True, append_images=frames[1:], loops=0)
         os.system(f'ffmpeg -i {self.path}.gif {self.path}.mp4 -loglevel error -y')
         return f'{self.path}.mp4'
-
-    def crop_img(self, img: Image.Image):
-        w, h = img.size
-        left = (w - self.W)/2
-        top = (h - self.H)/2
-        return img.convert('RGB').crop((left, top, left+self.W, top+self.H))
         
