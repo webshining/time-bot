@@ -1,12 +1,12 @@
 import io
-import os
 from datetime import datetime, timedelta
 
+import moviepy.editor as mp
 import pytz
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageSequence
 
 from data.config import DIR
-    
+
 
 class Generate:
     def __init__(self, img: str or list[str], font: str, imgsize: str or list[str] = None, fontsize: int = None, fill: str = '#ffffff', brightness: float = 1.0, text: str = None, timezone: str = None):
@@ -59,6 +59,8 @@ class Generate:
             
             frames.append(frame)
         frames[0].save(f'{self.path}.gif', format='GIF', save_all=True, append_images=frames[1:], loops=0)
-        os.system(f'ffmpeg -i {self.path}.gif {self.path}.mp4 -loglevel error -y')
+        
+        clip = mp.VideoFileClip(f"{self.path}.gif")
+        clip.write_videofile(f"{self.path}.mp4", logger=None)
         return f'{self.path}.mp4'
         
