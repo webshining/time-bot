@@ -9,7 +9,7 @@ from data.config import DIR
 
 
 class Generate:
-    def __init__(self, img: str or list[str], font: str, imgsize: str or list[str] = None, fontsize: int = None, fill: str = '#ffffff', brightness: float = 1.0, text: str = None, timezone: str = None):
+    def __init__(self, img: str, font: str, imgsize: str or list[str] = None, fontsize: int = None, fill: str = '#ffffff', brightness: float = None, text: str = None, timezone: str = None):
         self.isgif = img.split('.')[-1] == 'gif'
         self.img = Image.open(f"{DIR}/images/{img}")
         self.W, self.H = (imgsize[0], imgsize[1]) if isinstance(imgsize, tuple) else (imgsize, imgsize) if imgsize else (min(self.img.size), min(self.img.size))
@@ -28,36 +28,33 @@ class Generate:
         return (self.current_time().replace(second=0, microsecond=0)+timedelta(minutes=1)-self.current_time()).total_seconds()
     
     def crop_img(self, img: Image.Image = None):
-        img = img if img else self.img
         w, h = img.size
-        left = (w - self.W)/2
-        top = (h - self.H)/2
-        return img.convert('RGB').crop((left, top, left+self.W, top+self.H))
-    
+        left = (w - self.W)//2
+        top = (h - self.H)//2
+        return img.convert('RGBA').crop((left, top, left+self.W, top+self.H))
+
     def darken_img(self, img: Image.Image = None, brightness: float = None):
-        img = img if img else self.img
-        brightness = brightness if brightness else self.brightness
-        return ImageEnhance.Brightness(img).enhance(self.brightness)
+        return ImageEnhance.Brightness(img).enhance(brightness) if brightness else img
     
     def generate_jpg(self):
-        img = self.darken_img(self.crop_img(self.img))
+        img = self.darken_img(self.crop_img(self.img), self.brightness)
         draw = ImageDraw.Draw(img)
         _, _, w, h = draw.textbbox((0, 0), self.text, font=self.font)
         draw.text(((self.W-w)/2, (self.H-h)/2), self.text, self.fill, self.font)
         b = io.BytesIO()
-        img.save(b, format='JPEG')
+        img.save(b, format='PNG')
         return b
     
     def generate_gif(self):
         frames = []
         for frame in ImageSequence.Iterator(self.img):
-            frame = self.darken_img(self.crop_img(frame))
+            frame = self.darken_img(self.crop_img(frame), self.brightness)
             draw = ImageDraw.Draw(frame)
             _, _, w, h = draw.textbbox((0, 0), self.text, font=self.font)
             draw.text(((self.W-w)/2, (self.H-h)/2), self.text, self.fill, self.font)
             del draw
             
-            frames.append(frame)
+            frames.append(frame.resize((720,720)) if frame.size[1] > 720 else frame)
         frames[0].save(f'{self.path}.gif', format='GIF', save_all=True, append_images=frames[1:], loops=0)
         
         clip = mp.VideoFileClip(f"{self.path}.gif")
