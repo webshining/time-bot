@@ -1,7 +1,7 @@
 import io
 from datetime import datetime, timedelta
 
-import moviepy.editor as mp
+import imageio.v3 as iio
 import pytz
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageSequence
 
@@ -28,25 +28,37 @@ class Generate:
     def time_to_wait(self) -> timedelta.total_seconds:
         return (self.current_time().replace(second=0, microsecond=0)+timedelta(minutes=1)-self.current_time()).total_seconds()
     
-    def crop_img(self, img: Image.Image = None):
+    def crop_img(self, img: Image.Image):
         w, h = img.size
         left = (w - self.W)//2
         top = (h - self.H)//2
-        return img.convert('RGBA').crop((left, top, left+self.W, top+self.H))
+        return img.convert('RGB').crop((left, top, left+self.W, top+self.H))
 
-    def darken_img(self, img: Image.Image = None, brightness: float = None):
+    def darken_img(self, img: Image.Image, brightness: float = None):
         return ImageEnhance.Brightness(img).enhance(brightness) if brightness else img
     
-    def generate_jpg(self):
+    def get_avg_fps(self, img: Image.Image):
+        img.seek(0)
+        frames = duration = 0
+        while True:
+            try:
+                frames += 1
+                duration += img.info['duration']
+                img.seek(img.tell() + 1)
+            except EOFError:
+                return frames / duration * 1000
+        return None
+    
+    def generate_photo(self):
         img = self.darken_img(self.crop_img(self.img), self.brightness)
         draw = ImageDraw.Draw(img)
         _, _, w, h = draw.textbbox((0, 0), self.text, font=self.font)
         draw.text(((self.W-w)/2, (self.H-h)/2), self.text, self.fill, self.font)
         b = io.BytesIO()
-        img.save(b, format='PNG')
+        img.save(b, format='JPEG')
         return b
     
-    def generate_gif(self):
+    def generate_video(self):
         frames = []
         for frame in ImageSequence.Iterator(self.img):
             frame = self.darken_img(self.crop_img(frame), self.brightness)
@@ -55,10 +67,8 @@ class Generate:
             draw.text(((self.W-w)/2, (self.H-h)/2), self.text, self.fill, self.font)
             del draw
             
-            frames.append(frame.resize(self.resize))
-        frames[0].save(f'{self.path}.gif', format='GIF', save_all=True, append_images=frames[1:], loops=0)
-        
-        clip = mp.VideoFileClip(f"{self.path}.gif")
-        clip.write_videofile(f"{self.path}.mp4", logger=None)
+            frames.append(frame.resize(self.resize) if self.resize else frame)
+            
+        iio.imwrite(f'{self.path}.mp4', frames, fps=self.get_avg_fps(self.img) or 25)
         return f'{self.path}.mp4'
         

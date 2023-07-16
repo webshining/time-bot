@@ -13,9 +13,9 @@ async def main():
             generate = Generate(img='img.png', font='font.ttf')
             photos = [i.file_id for i in await app.get_profile_photos("me") if hasattr(i, 'file_id')]
             if generate.isgif:
-                await app.set_profile_photo(video=generate.generate_gif())
+                await app.set_profile_photo(video=generate.generate_video())
             else:
-                await app.set_profile_photo(photo=generate.generate_jpg())
+                await app.set_profile_photo(photo=generate.generate_photo())
             if photos:
                 await app.delete_profile_photos(photos[0])
             await asyncio.sleep(generate.time_to_wait())
