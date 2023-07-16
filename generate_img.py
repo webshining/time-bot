@@ -9,10 +9,11 @@ from data.config import DIR
 
 
 class Generate:
-    def __init__(self, img: str, font: str, imgsize: str or list[str] = None, fontsize: int = None, fill: str = '#ffffff', brightness: float = None, text: str = None, timezone: str = None):
+    def __init__(self, img: str, font: str, imgsize: int or list[int] = None, resize: int or list[int] = None, fontsize: int = None, fill: str = '#ffffff', brightness: float = None, text: str = None, timezone: str = None):
         self.isgif = img.split('.')[-1] == 'gif'
         self.img = Image.open(f"{DIR}/images/{img}")
         self.W, self.H = (imgsize[0], imgsize[1]) if isinstance(imgsize, tuple) else (imgsize, imgsize) if imgsize else (min(self.img.size), min(self.img.size))
+        self.resize = resize if isinstance(resize, list) else (resize, resize) if resize else None
         self.fontsize = fontsize if fontsize else int(self.W/3-12)
         self.font = ImageFont.truetype(f'{DIR}/fonts/{font}', size=self.fontsize)
         self.fill = fill
@@ -54,7 +55,7 @@ class Generate:
             draw.text(((self.W-w)/2, (self.H-h)/2), self.text, self.fill, self.font)
             del draw
             
-            frames.append(frame.resize((720,720)) if frame.size[1] > 720 else frame)
+            frames.append(frame.resize(self.resize))
         frames[0].save(f'{self.path}.gif', format='GIF', save_all=True, append_images=frames[1:], loops=0)
         
         clip = mp.VideoFileClip(f"{self.path}.gif")
