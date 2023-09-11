@@ -10,7 +10,7 @@ app = Client('data/timebot', api_id=API_ID, api_hash=API_HASH)
 async def main():
     async with app:
         while True:
-            generate = Generate(img='img.png', font='font.ttf')
+            generate = Generate(img='img.gif', font='font.ttf')
             photos = [i.file_id for i in await app.get_profile_photos("me") if hasattr(i, 'file_id')]
             if generate.isgif:
                 await app.set_profile_photo(video=generate.generate_video())

@@ -3,4 +3,5 @@ Pyrogram==1.4.0
 pytz
 tgcrypto
 python-decouple
-imageio[ffmpeg]
+imageio
+imageio-ffmpeg

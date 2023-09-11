@@ -1,4 +1,5 @@
 import io
+import logging
 from datetime import datetime, timedelta
 
 import imageio.v3 as iio
@@ -7,6 +8,7 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageSequence
 
 from data.config import DIR
 
+logging.getLogger().setLevel(logging.ERROR)
 
 class Generate:
     def __init__(self, img: str, font: str, imgsize: int or list[int] = None, resize: int or list[int] = None, fontsize: int = None, fill: str = '#ffffff', brightness: float = None, text: str = None, timezone: str = None):
@@ -69,6 +71,6 @@ class Generate:
             
             frames.append(frame.resize(self.resize) if self.resize else frame)
             
-        iio.imwrite(f'{self.path}.mp4', frames, fps=self.get_avg_fps(self.img) or 25)
+        iio.imwrite(f'{self.path}.mp4', frames, fps=self.get_avg_fps(self.img) or 25, ffmpeg_log_level="error")
         return f'{self.path}.mp4'
         
