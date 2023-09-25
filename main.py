@@ -11,7 +11,7 @@ async def main():
     async with app:
         while True:
             generate = Generate(img='img.gif', font='font.ttf')
-            photos = [i.file_id for i in await app.get_profile_photos("me") if hasattr(i, 'file_id')]
+            photos = [i.file_id async for i in app.get_chat_photos("me") if hasattr(i, 'file_id')]
             if generate.isgif:
                 await app.set_profile_photo(video=generate.generate_video())
             else:

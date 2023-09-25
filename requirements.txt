@@ -1,5 +1,5 @@
 pillow
-Pyrogram==1.4.0
+Pyrogram
 pytz
 tgcrypto
 python-decouple
